@@ -248,8 +248,8 @@ asw::FunctorFactory::DerivedFunctor<R,A...>& asw::FunctorFactory::DerivedFunctor
 	_f = df._f;
 }
 
-std::map<std::string,FunctorFactory::Functor*>& asw::FunctorFactory::getMap(){ // Get map class
-	static std::map<std::string,FunctorFactory::Functor*> m_map; // The actual map storing the functors.
+std::map<std::string,asw::FunctorFactory::Functor*>& asw::FunctorFactory::getMap(){ // Get map class
+	static std::map<std::string,asw::FunctorFactory::Functor*> m_map; // The actual map storing the functors.
 	return m_map;
 }
 
@@ -292,7 +292,7 @@ Base * asw::FunctorFactory::createObject(const std::string &skey, A... args){
 		 */
 		#define FF_MACRO(NAME,TYPE,...)\
 			namespace { \
-				::FunctorFactory::Registrator<TYPE,##__VA_ARGS__> registrator_##NAME(#NAME); \
+				::asw::FunctorFactory::Registrator<TYPE,##__VA_ARGS__> registrator_##NAME(#NAME); \
 			}
 	#endif
 
