@@ -66,15 +66,21 @@ have another name, such as REGISTER or Register_Macro, if you would like.
 ## Locations
 Line 32
  #include "**Base**.h"
+
 Line 183
  static **Base**\* create(A... args);
+
 Line 225
  static **Base**\* createObject(const std::string &skey, A... args);
+
 Line 257
  **Base** \* asw::FunctorFactory::create(A... args){
+
 Line 263
  DerivedFunctor<**Base**\*,A...> \* df = new DerivedFunctor<**Base**\*,A...>(FunctorFactory::create<U,A...>);
+
 Line 277
  **Base** \* asw::FunctorFactory::createObject(const std::string &skey, A... args){
+
 Line 280
  DerivedFunctor<**Base**\*,A...> \* df = static_cast<DerivedFunctor<**Base**\*,A...>\*>(it->second);
