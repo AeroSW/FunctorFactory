@@ -49,8 +49,8 @@ for each constructor is **unique**.
     FF_MACRO(name_3, Derived, const char *);
     
     // Examples on how to create objects after Registering them with the Macro
-    Base * b = FunctorFactor::createObject<int, int, float>("name_1", 8, 8, 3.0);
-    Derived * d = static_cast<Derived *>(FunctorFactory::createObject<const char*>("name_3","Hello World"));
+    Base * b = asw::FunctorFactor::createObject<int, int, float>("name_1", 8, 8, 3.0);
+    Derived * d = static_cast<Derived *>(asw::FunctorFactory::createObject<const char*>("name_3","Hello World"));
 
 # Final Comments
 The way this Factory class works is once a class/constructor is included,
