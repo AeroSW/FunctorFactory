@@ -31,7 +31,7 @@
 
 #include "Base.h"
 
-namespace asw{
+namespace ASW{
 
 /*!
  *	\mainpage
@@ -108,7 +108,7 @@ namespace asw{
 struct FunctorFactory{
 	private:
 		/*!
-		 *	\namespace asw
+		 *	\namespace ASW
 		 *	\class Functor
 		 *	\brief A base class for easy storage into the registry
 		 *	mapping for the unique templated DerivedFunctors.
@@ -178,7 +178,10 @@ struct FunctorFactory{
 			private:
 				R (*_f)(A...); //!< The actual function being called when overloaded () operator is used.
 		};
-		static std::map<std::string,Functor*>& getMap(); // Map pairing string keys to their Functors(stored as Base Functors)
+		static std::map<std::string, Functor*>& getMap() { // Map pairing string keys to their Functors(stored as Base Functors)
+			static std::map<std::string, ASW::FunctorFactory::Functor*> m_map; // The actual map storing the functors.
+			return m_map;
+		}
 		template<typename U, typename... A> // Templated create function which will create the derived objects being requested!
 		static Base * create(A... args);
 	public:
@@ -222,63 +225,55 @@ struct FunctorFactory{
 		 *	constructor of this requested object can throw.
 		 */
 		template<typename... A>
-		static Base * createObject(const std::string &skey, A... args);
+		static inline Base * createObject(const std::string &skey, A... args) {
+			auto it = getMap().find(skey);
+			if (it == getMap().end()) return nullptr;
+			DerivedFunctor<Base*, A...> * df = static_cast<DerivedFunctor<Base*, A...>*>(it->second);
+			return (*df)(args...);
+		}
 };
 
 }
 // Implementation of the derived functor's methods
 template<typename R, typename... A> // Basic Constructor.
-asw::FunctorFactory::DerivedFunctor<R,A...>::DerivedFunctor(R (*f)(A...)){
+ASW::FunctorFactory::DerivedFunctor<R,A...>::DerivedFunctor(R (*f)(A...)){
 	_f = f;
 }
 template<typename R, typename... A> // Copy Constructor.
-asw::FunctorFactory::DerivedFunctor<R,A...>::DerivedFunctor(const FunctorFactory::DerivedFunctor<R,A...>& df){
+ASW::FunctorFactory::DerivedFunctor<R,A...>::DerivedFunctor(const FunctorFactory::DerivedFunctor<R,A...>& df){
 	_f = df._f;
 }
 template<typename R, typename... A> // Destructor
-asw::FunctorFactory::DerivedFunctor<R,A...>::~DerivedFunctor(){}
+ASW::FunctorFactory::DerivedFunctor<R,A...>::~DerivedFunctor(){}
 
 // Overloaded Operators for Derived Functor
 template<typename R, typename... A> // Overloaded () operator
-R asw::FunctorFactory::DerivedFunctor<R,A...>::operator()(A... args){
+R ASW::FunctorFactory::DerivedFunctor<R,A...>::operator()(A... args){
 	return _f(args...);
 }
 template<typename R, typename... A> // Overloaded = operator
-asw::FunctorFactory::DerivedFunctor<R,A...>& asw::FunctorFactory::DerivedFunctor<R,A...>::operator=(const FunctorFactory::DerivedFunctor<R,A...>& df){
+ASW::FunctorFactory::DerivedFunctor<R,A...>& ASW::FunctorFactory::DerivedFunctor<R,A...>::operator=(const FunctorFactory::DerivedFunctor<R,A...>& df){
 	_f = df._f;
 }
 
-std::map<std::string,asw::FunctorFactory::Functor*>& asw::FunctorFactory::getMap(){ // Get map class
-	static std::map<std::string,asw::FunctorFactory::Functor*> m_map; // The actual map storing the functors.
-	return m_map;
-}
-
 template<typename U, typename... A>
-Base * asw::FunctorFactory::create(A... args){
+Base * ASW::FunctorFactory::create(A... args){
 	return new U(args...);
 }
 
 template<typename U, typename... A>
-asw::FunctorFactory::Registrator<U,A...>::Registrator(const std::string &key){
+ASW::FunctorFactory::Registrator<U,A...>::Registrator(const std::string &key){
 	DerivedFunctor<Base*,A...> * df = new DerivedFunctor<Base*,A...>(FunctorFactory::create<U,A...>);
 	getMap()[key] = df;
 	m_key = key;
 }
 template<typename U, typename... A>
-asw::FunctorFactory::Registrator<U,A...>::~Registrator(){
+ASW::FunctorFactory::Registrator<U,A...>::~Registrator(){
 	auto it = getMap().find(m_key); // Find in case this Registrator's key still exists
 	if(it != getMap().end()){ 	// Check if it does exist
 		delete it->second; 		// If so, delete the Functor
 		getMap().erase(it); 	// Erase it from the mapping. Cleanup is important!
 	}
-}
-
-template<typename... A>
-Base * asw::FunctorFactory::createObject(const std::string &skey, A... args){
-	auto it = getMap().find(skey);
-	if(it == getMap().end()) return nullptr;
-	DerivedFunctor<Base*,A...> * df = static_cast<DerivedFunctor<Base*,A...>*>(it->second);
-	return (*df)(args...);
 }
 
 	#ifndef FF_MACRO // The register macro to include in header files
@@ -292,7 +287,7 @@ Base * asw::FunctorFactory::createObject(const std::string &skey, A... args){
 		 */
 		#define FF_MACRO(NAME,TYPE,...)\
 			namespace { \
-				::asw::FunctorFactory::Registrator<TYPE,##__VA_ARGS__> registrator_##NAME(#NAME); \
+				::ASW::FunctorFactory::Registrator<TYPE,##__VA_ARGS__> registrator_##NAME(#NAME); \
 			}
 	#endif
 
